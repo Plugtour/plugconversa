@@ -13,11 +13,7 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: function (origin, cb) {
-      if (!origin) return cb(null, true); // Postman/cURL
-      if (allowedOrigins.includes(origin)) return cb(null, true);
-      return cb(new Error('Not allowed by CORS'));
-    },
+    origin: true,
     credentials: true
   })
 );
