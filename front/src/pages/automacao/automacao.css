@@ -1,0 +1,410 @@
+/* caminho: front/src/pages/automacao/automacao.css */
+
+/* container geral (fica dentro do .block do seu layout) */
+.autoWrap {
+  width: 100%;
+}
+
+/* topo: tabs + criar + busca */
+.autoTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.autoRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.autoBtnPrimary {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid #1d4ed8;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.2);
+  transition: background 140ms ease;
+}
+.autoBtnPrimary:hover {
+  background: #1d4ed8;
+}
+
+.autoSearch {
+  width: 320px;
+  max-width: 55vw;
+  position: relative;
+}
+.autoSearch input {
+  width: 100%;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 0 40px 0 12px;
+  outline: none;
+  font-size: 13px;
+  background: #fff;
+  color: #111827;
+}
+.autoSearch input:focus {
+  border-color: #c7d2fe;
+}
+.autoSearchIcon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 16px;
+}
+
+.autoTotalLabel {
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 10px 0 10px 2px;
+}
+
+/* tabs */
+.autoTabs {
+  display: inline-flex;
+  gap: 10px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+.autoTabBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: #f9fafb;
+  color: #111827;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+.autoTabBtnActive {
+  background: #111827;
+  color: #fff;
+}
+
+/* tabela */
+.autoTable {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid #eef2f7;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(17, 24, 39, 0.06);
+  overflow: hidden;
+}
+
+.autoHeadRow {
+  display: grid;
+  grid-template-columns: 44px 2.2fr 3fr 110px 70px 54px;
+  padding: 12px;
+  border-bottom: 1px solid #eef2f7;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.autoRow {
+  display: grid;
+  grid-template-columns: 44px 2.2fr 3fr 110px 70px 54px;
+  padding: 12px;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fff;
+}
+
+.autoCenter {
+  display: flex;
+  justify-content: center;
+}
+
+.autoStartCol {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.autoStartTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #111827;
+  font-weight: 800;
+  font-size: 13px;
+  min-width: 0;
+}
+.autoEllipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.autoMuted {
+  color: #9ca3af;
+  font-size: 12px;
+  font-weight: 700;
+}
+.autoChevron {
+  color: #9ca3af;
+  font-weight: 900;
+}
+
+.autoMsgCol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.autoMatch {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+/* chips */
+.autoChips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.autoChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: #eef2ff;
+  border: 1px solid #e0e7ff;
+  color: #3730a3;
+  font-size: 12px;
+  line-height: 12px;
+  white-space: nowrap;
+}
+
+.autoAddMini {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid #c7d2fe;
+  background: #4f46e5;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.22);
+}
+
+.autoExec {
+  color: #111827;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+/* toggle */
+.autoToggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  position: relative;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+.autoToggleOn {
+  background: #2563eb;
+}
+.autoToggleKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  transition: left 140ms ease;
+}
+.autoToggleOn .autoToggleKnob {
+  left: 22px;
+}
+
+/* menu ações */
+.autoDotsBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  color: #6b7280;
+}
+.autoDotsBtn:hover {
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+}
+.autoMenuWrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.autoMenu {
+  position: absolute;
+  right: 0;
+  top: 36px;
+  width: 190px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  z-index: 30;
+}
+.autoMenuBtn {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 900;
+  color: #111827;
+}
+.autoMenuBtn:hover {
+  background: #f9fafb;
+}
+.autoMenuBtnDanger {
+  color: #b91c1c;
+}
+.autoMenuBtnDanger:hover {
+  background: #fef2f2;
+}
+.autoMenuBtnDisabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* modal */
+.autoModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.autoModal {
+  width: min(720px, 92vw);
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+.autoModalHead {
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef2f7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.autoModalTitle {
+  font-weight: 800;
+  color: #111827;
+}
+.autoModalClose {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  color: #6b7280;
+  font-weight: 900;
+}
+.autoModalBody {
+  padding: 16px;
+}
+
+.autoFormGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.autoLabel {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+.autoInput,
+.autoSelect {
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 0 12px;
+  outline: none;
+  font-size: 13px;
+  background: #fff;
+}
+.autoInlineRow {
+  display: flex;
+  gap: 8px;
+}
+.autoBtnSoft {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  color: #3730a3;
+  font-weight: 900;
+  cursor: pointer;
+}
+.autoFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+.autoBtnGhost {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  color: #111827;
+}
+
+/* responsivo */
+@media (max-width: 860px) {
+  .autoFormGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* arquivo: automacao.css */
+/* caminho: front/src/pages/automacao/automacao.css */

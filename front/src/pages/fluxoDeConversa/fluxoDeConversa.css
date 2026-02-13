@@ -1,0 +1,307 @@
+/* caminho: front/src/pages/fluxoDeConversa/fluxoDeConversa.css */
+
+/* ✅ Agora quem controla padding é a classe global `.page` do index.css.
+   Aqui fica só o espaçamento vertical entre blocos. */
+.fc-page {
+  display: grid;
+  gap: var(--section-gap);
+}
+
+/* header (usa pageHeader/pageTitle/pageSubtitle do index.css; aqui só ajustes finos) */
+.fc-top {
+  align-items: flex-start;
+}
+
+.fc-select {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  color: #111;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  width: fit-content;
+  margin-top: 6px;
+}
+
+.fc-selectText {
+  font-size: 13px;
+}
+
+.fc-caret {
+  font-size: 13px;
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.fc-btn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.fc-btnGreen {
+  background: #55c54f;
+  color: #fff;
+}
+
+.fc-plus {
+  font-weight: 900;
+  font-size: 18px;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.fc-templates {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.fc-templateBtn {
+  height: 42px;
+  border-radius: 12px;
+  border: 2px dashed #4b86ff;
+  background: #fff;
+  color: #2a6cff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fc-section {
+  display: grid;
+  gap: 10px;
+}
+
+.fc-sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fc-sectionTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #111;
+}
+
+.fc-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.fc-folderPill {
+  height: 36px;
+  min-width: 300px;
+  border-radius: 10px;
+  border: 1px solid #ededed;
+  background: #fff;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.fc-folderIcon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.fc-folderSvg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: #c4c4c4;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fc-folderLabel {
+  flex: 1;
+  text-align: left;
+  font-weight: 700;
+  color: #111;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fc-folderRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #888;
+}
+
+.fc-folderCount {
+  font-weight: 700;
+  color: #9a9a9a;
+}
+
+.fc-kebab {
+  font-size: 16px;
+  transform: translateY(-1px);
+}
+
+.fc-search {
+  position: relative;
+  width: 260px;
+}
+
+.fc-searchInput {
+  width: 100%;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid #ededed;
+  padding: 0 36px 0 12px;
+  outline: none;
+  background: #fff;
+}
+
+.fc-searchIcon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.fc-searchSvg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: #777;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.fc-tableWrap {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.fc-tableHead {
+  display: grid;
+  grid-template-columns: 44px 1fr 160px 140px 110px 170px 44px;
+  align-items: center;
+  color: #777;
+  font-size: 12px;
+  padding: 12px 10px;
+}
+
+.fc-th {
+  font-weight: 700;
+}
+
+.fc-thCheck {
+  display: flex;
+  justify-content: center;
+}
+
+.fc-thMenu {
+  text-align: right;
+}
+
+.fc-tableBody {
+  display: grid;
+  gap: 12px;
+}
+
+.fc-tr {
+  display: grid;
+  grid-template-columns: 44px 1fr 160px 140px 110px 170px 44px;
+  align-items: center;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #ededed;
+  padding: 16px 10px;
+}
+
+.fc-tdCheck {
+  display: flex;
+  justify-content: center;
+}
+
+.fc-tdName {
+  color: #111;
+  font-weight: 600;
+}
+
+.fc-tdConn,
+.fc-tdExec,
+.fc-tdCtr {
+  color: #888;
+}
+
+.fc-tdUpd {
+  color: #777;
+}
+
+.fc-tdMenu {
+  display: flex;
+  justify-content: center;
+}
+
+.fc-rowMenu {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #777;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.fc-rowMenu:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* Responsivo */
+@media (max-width: 1180px) {
+  .fc-templates {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .fc-sectionHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fc-toolbar {
+    justify-content: space-between;
+  }
+
+  .fc-folderPill {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .fc-search {
+    width: 100%;
+  }
+}
+
+/* arquivo: fluxoDeConversa.css */

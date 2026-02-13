@@ -1,0 +1,149 @@
+/* caminho: front/src/pages/campanhas/campanhas.css */
+
+.cpPage {
+  /* neutraliza efeitos do template do Vite (App.css) sem mexer globalmente */
+  text-align: left;
+  width: 100%;
+}
+
+.cpHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-height: 54px;
+}
+
+.cpHeaderLeft {
+  flex: 1;
+  min-width: 0;
+}
+
+.cpHeaderRight {
+  flex: 0 0 auto;
+}
+
+/* ===== toolbar topo-direita ===== */
+.cpToolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cpBtn {
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 18px;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 0 14px;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  transition: transform 120ms ease, filter 120ms ease, background 120ms ease;
+}
+
+.cpBtn:active {
+  transform: translateY(1px);
+}
+
+.cpBtnIcon,
+.cpBtnIconRight {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+}
+
+.cpBtnGhost {
+  background: #eaf7ec;
+  border-color: #6fcd7c;
+  color: #2d9a3a;
+}
+
+.cpBtnPrimary {
+  background: #49b35b;
+  border-color: #49b35b;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(73, 179, 91, 0.18);
+}
+
+.cpBtnPrimary:hover {
+  filter: brightness(0.98);
+}
+
+.cpSearchWrap {
+  position: relative;
+  width: 240px;
+  height: 36px;
+}
+
+.cpSearch {
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  border: 1px solid #e6e6e6;
+  background: #fff;
+  padding: 0 40px 0 16px;
+  outline: none;
+  font-size: 13px;
+}
+
+.cpSearch::placeholder {
+  color: #9a9a9a;
+}
+
+.cpSearchIcon {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9a9a9a;
+  pointer-events: none;
+}
+
+/* ===== corpo ===== */
+.cpBody {
+  margin-top: 22px;
+}
+
+.cpListHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cpListTitle {
+  font-size: 13px;
+  color: #6f6f6f;
+}
+
+/* ===== vazio centralizado ===== */
+.cpEmpty {
+  height: calc(100vh - 210px);
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cpEmptyText {
+  font-size: 13px;
+  color: #6f6f6f;
+}
+
+.cpEmptyLink {
+  color: #49b35b;
+  font-weight: 700;
+}
+
+.cpSubTitle {
+  font-size: 13px;
+  color: #6f6f6f;
+  margin: 0;
+  font-weight: 500;
+}
+
+
+/* arquivo: campanhas.css */
