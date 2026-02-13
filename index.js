@@ -5,7 +5,23 @@ const cors = require('cors');
 const pool = require('./db');
 
 const app = express();
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://app.plugconversa.com.br'
+];
+
+app.use(
+  cors({
+    origin: function (origin, cb) {
+      if (!origin) return cb(null, true); // Postman/cURL
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+      return cb(new Error('Not allowed by CORS'));
+    },
+    credentials: true
+  })
+);
+
 app.use(express.json());
 
 const tagsRoutes = require('./routes/tags.routes');
