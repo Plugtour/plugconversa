@@ -197,6 +197,12 @@ export default function Sidebar() {
     document.documentElement.style.setProperty('--pc-sidebar-w', `${width}px`)
   }, [width])
 
+  // ✅ AJUSTE: exibe o backend baseado na env (produção) com fallback local
+  const backendLabel = useMemo(() => {
+    const raw = import.meta?.env?.VITE_API_URL || 'http://localhost:3000'
+    return String(raw).replace(/^https?:\/\//, '').replace(/\/+$/, '')
+  }, [])
+
   return (
     <aside
       style={{
@@ -376,7 +382,7 @@ export default function Sidebar() {
       </nav>
 
       <div style={{ marginTop: 'auto', fontSize: 12, color: '#666' }}>
-        {collapsed ? <span title="Backend: localhost:3000">API</span> : <>Backend: <b>localhost:3000</b></>}
+        {collapsed ? <span title={`Backend: ${backendLabel}`}>API</span> : <>Backend: <b>{backendLabel}</b></>}
       </div>
     </aside>
   )

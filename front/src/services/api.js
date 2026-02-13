@@ -1,4 +1,9 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// caminho: front/src/services/api.js
+
+// ✅ Ajuste: fallback seguro caso a env não exista
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  'https://plugconversa-api.onrender.com';
 
 export async function apiGet(path) {
   const res = await fetch(`${API_BASE}${path}`);
