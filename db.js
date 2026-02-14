@@ -1,7 +1,8 @@
-// caminho: db.js
+// caminho: plugconversa/db.js
 const { Pool } = require('pg')
 
-// ✅ No Render, a conexão vem do Environment Variables (DATABASE_URL)
+// ✅ No Render/produção, a conexão vem do Environment Variables (DATABASE_URL)
+// ✅ Local, você também está usando Supabase remoto, então SSL precisa estar ativo
 const connectionString = process.env.DATABASE_URL
 
 if (!connectionString) {
@@ -20,20 +21,22 @@ try {
 }
 
 /**
- * ✅ Supabase exige SSL em produção.
- * ✅ No Render pode ocorrer: SELF_SIGNED_CERT_IN_CHAIN
- * Por isso usamos rejectUnauthorized: false no pg.
- * (E no Render vamos adicionar NODE_TLS_REJECT_UNAUTHORIZED=0 como complemento, se necessário.)
+ * ✅ Supabase geralmente exige SSL SEMPRE (mesmo em dev) quando o banco é remoto.
+ * Então ativamos SSL se:
+ * - NODE_ENV=production, OU
+ * - a URL tiver "supabase.co", OU
+ * - PGSSLMODE=require (opcional)
  */
-const ssl =
-  process.env.NODE_ENV === 'production'
-    ? { rejectUnauthorized: false }
-    : false
+const shouldUseSSL =
+  process.env.NODE_ENV === 'production' ||
+  String(connectionString).includes('supabase.co') ||
+  String(process.env.PGSSLMODE || '').toLowerCase() === 'require'
+
+const ssl = shouldUseSSL ? { rejectUnauthorized: false } : false
 
 const pool = new Pool({
   connectionString,
   ssl,
-  // ✅ ajuda em ambientes que “dormem” e demoram a responder
   connectionTimeoutMillis: 10000
 })
 
@@ -43,4 +46,4 @@ pool.on('error', (err) => {
 })
 
 module.exports = pool
-// fim: db.js
+// fim do caminho: plugconversa/db.js

@@ -1,7 +1,10 @@
-// caminho: front/src/services/api.js
+// caminho: plugconversa/front/src/services/api.js
 
 // ✅ Ajuste: fallback seguro caso a env não exista
-export const API_BASE = import.meta.env.VITE_API_URL || 'https://plugconversa-api.onrender.com'
+const RAW_BASE = import.meta.env.VITE_API_URL || 'https://plugconversa-api.onrender.com'
+
+// ✅ evita problemas com "/" duplicada (ex: ...com.br/ + /kanban/board)
+export const API_BASE = String(RAW_BASE).replace(/\/+$/, '')
 
 async function readJsonOrThrow(res, method, path) {
   const txt = await res.text().catch(() => '')
@@ -10,10 +13,12 @@ async function readJsonOrThrow(res, method, path) {
     try {
       details = txt ? JSON.parse(txt) : txt
     } catch {}
+
     const msg =
       (typeof details === 'object' && details && (details.error || details.message))
         ? String(details.error || details.message)
         : String(details || `${method} ${path} falhou`)
+
     throw new Error(msg)
   }
 
@@ -53,4 +58,4 @@ export async function apiDelete(path) {
   return readJsonOrThrow(res, 'DELETE', path)
 }
 
-// fim do caminho: front/src/services/api.js
+// fim do caminho: plugconversa/front/src/services/api.js
