@@ -84,7 +84,7 @@ app.get('/ping', (req, res) => {
   res.json({ ok: true, message: 'API PlugConversa está viva!' });
 });
 
-// Testar conexão com o banco
+// ✅ Testar conexão com o banco (agora com detalhes do erro)
 app.get('/db-test', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW() AS now');
@@ -94,7 +94,17 @@ app.get('/db-test', async (req, res) => {
     });
   } catch (err) {
     console.error('Erro ao testar DB:', err);
-    return res.status(500).json({ ok: false, error: 'Erro ao conectar no banco' });
+
+    // ✅ devolve detalhes técnicos SEM vazar credenciais
+    return res.status(500).json({
+      ok: false,
+      error: 'Erro ao conectar no banco',
+      details: {
+        message: err?.message,
+        code: err?.code,
+        severity: err?.severity,
+      }
+    });
   }
 });
 
