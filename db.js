@@ -1,12 +1,16 @@
 // db.js
-const { Pool } = require('pg');
+const { Pool } = require('pg')
+
+// usa a variável de ambiente do Render
+const connectionString = process.env.DATABASE_URL
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL não está definida no ambiente.')
+}
 
 const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  user: 'postgres',          // usuário padrão do Postgres
-  password: 'Pascana1980', // 🔴 TROQUE pela senha que você criou
-  database: 'plugconversa',  // nome do banco que criamos no pgAdmin
-});
+  connectionString,
+  ssl: { rejectUnauthorized: false }
+})
 
-module.exports = pool;
+module.exports = pool
