@@ -6,7 +6,6 @@ const connectionString = process.env.DATABASE_URL
 
 if (!connectionString) {
   console.error('DATABASE_URL não definida no ambiente.')
-  // ✅ melhor falhar de forma explícita, senão o pg tenta defaults e confunde
   throw new Error('DATABASE_URL não definida no ambiente.')
 }
 
@@ -20,10 +19,22 @@ try {
   console.log('[DB] connectionString recebida, mas não consegui parsear como URL (formato inválido).')
 }
 
+/**
+ * ✅ Supabase exige SSL em produção.
+ * ✅ No Render pode ocorrer: SELF_SIGNED_CERT_IN_CHAIN
+ * Por isso usamos rejectUnauthorized: false no pg.
+ * (E no Render vamos adicionar NODE_TLS_REJECT_UNAUTHORIZED=0 como complemento, se necessário.)
+ */
+const ssl =
+  process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: false }
+    : false
+
 const pool = new Pool({
   connectionString,
-  // ✅ Supabase exige SSL em produção (e no pooler normalmente também)
-  ssl: { rejectUnauthorized: false }
+  ssl,
+  // ✅ ajuda em ambientes que “dormem” e demoram a responder
+  connectionTimeoutMillis: 10000
 })
 
 // ✅ loga erros de conexão no pool (muito útil no Render)
@@ -32,4 +43,4 @@ pool.on('error', (err) => {
 })
 
 module.exports = pool
-// arquivo: db.js
+// fim: db.js
