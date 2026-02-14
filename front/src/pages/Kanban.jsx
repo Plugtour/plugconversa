@@ -10,7 +10,7 @@ import CenterModal from './kanban/CenterModal'
 import { safeJsonParse, clone } from './kanban/utils'
 import { parseCardId, parseColDropId } from './kanban/ids'
 
-const API_BASE = import.meta.env.VITE_API_URL;
+import { apiGet, apiPost, apiPatch, apiDelete } from '../services/api'
 
 // ✅ diminuir largura e gap
 const COL_W = 250
@@ -25,7 +25,6 @@ export default function Kanban() {
   const [showNewCol, setShowNewCol] = useState(false)
   const [newColName, setNewColName] = useState('')
   const [newColColor, setNewColColor] = useState('#111111')
-  const [newColAi, setNewColAi] = useState('')
   const [creatingCol, setCreatingCol] = useState(false)
 
   const isDraggingCardRef = useRef(false)
@@ -35,24 +34,23 @@ export default function Kanban() {
   const [activeColSnap, setActiveColSnap] = useState(null)
 
   const [activeCardSnap, setActiveCardSnap] = useState(null)
-  const [overTagId, setOverTagId] = useState(null)
+  const [overColId, setOverColId] = useState(null)
 
   const boardRef = useRef(null)
   const [modal, setModal] = useState({ type: null, col: null, card: null })
 
-  const [newCardName, setNewCardName] = useState('')
-  const [newCardPhone, setNewCardPhone] = useState('')
-  const [newCardNotes, setNewCardNotes] = useState('')
+  // cards
+  const [newCardTitle, setNewCardTitle] = useState('')
+  const [newCardDesc, setNewCardDesc] = useState('')
   const [creatingCard, setCreatingCard] = useState(false)
 
-  const [editCardName, setEditCardName] = useState('')
-  const [editCardPhone, setEditCardPhone] = useState('')
-  const [editCardNotes, setEditCardNotes] = useState('')
+  const [editCardTitle, setEditCardTitle] = useState('')
+  const [editCardDesc, setEditCardDesc] = useState('')
   const [updatingCard, setUpdatingCard] = useState(false)
 
+  // columns
   const [editColName, setEditColName] = useState('')
   const [editColColor, setEditColColor] = useState('#111111')
-  const [editColAi, setEditColAi] = useState('')
   const [updatingCol, setUpdatingCol] = useState(false)
 
   const [deletingCard, setDeletingCard] = useState(false)
@@ -69,7 +67,7 @@ export default function Kanban() {
 
   const totalCards = useMemo(() => {
     return (Array.isArray(columns) ? columns : []).reduce((acc, col) => {
-      const count = Array.isArray(col?.contacts) ? col.contacts.length : 0
+      const count = Array.isArray(col?.cards) ? col.cards.length : 0
       return acc + count
     }, 0)
   }, [columns])
@@ -94,13 +92,15 @@ export default function Kanban() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`${API_BASE}/tags/board`)
-      if (!res.ok) {
-        const txt = await res.text().catch(() => '')
-        throw new Error(`HTTP ${res.status} ${txt}`.trim())
-      }
-      const data = await res.json()
-      setColumns(Array.isArray(data) ? data : [])
+      const data = await apiGet('/kanban/board')
+      const normalized = (Array.isArray(data) ? data : []).map((c) => ({
+        ...c,
+        // compat: a UI antiga usava name/contacts; agora usamos title/cards
+        name: c?.title,
+        contacts: Array.isArray(c?.cards) ? c.cards : [],
+        cards: Array.isArray(c?.cards) ? c.cards : []
+      }))
+      setColumns(normalized)
     } catch (e) {
       setError(e?.message ? String(e.message) : 'Erro ao carregar board')
       setColumns([])
@@ -113,14 +113,14 @@ export default function Kanban() {
     loadBoard()
   }, [])
 
-  function getColById(tagId) {
-    return (Array.isArray(columns) ? columns : []).find((c) => Number(c?.id) === Number(tagId)) || null
+  function getColById(colId) {
+    return (Array.isArray(columns) ? columns : []).find((c) => Number(c?.id) === Number(colId)) || null
   }
 
-  function findCardInColumns(contactId) {
+  function findCardInColumns(cardId) {
     for (const col of Array.isArray(columns) ? columns : []) {
-      const list = Array.isArray(col?.contacts) ? col.contacts : []
-      const idx = list.findIndex((c) => Number(c?.id) === Number(contactId))
+      const list = Array.isArray(col?.cards) ? col.cards : []
+      const idx = list.findIndex((c) => Number(c?.id) === Number(cardId))
       if (idx >= 0) return { colId: Number(col.id), index: idx, card: list[idx] }
     }
     return null
@@ -191,51 +191,44 @@ export default function Kanban() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [columns, drawerMounted])
 
-  async function apiMoveContact({ contactId, fromTagId, toTagId }) {
-    const res = await fetch(`${API_BASE}/tags/move`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contact_id: Number(contactId),
-        from_tag_id: Number(fromTagId),
-        to_tag_id: Number(toTagId)
-      })
-    })
-
-    if (!res.ok) {
-      const { txt, maybe } = await fetchJsonOrText(res)
-      const msg = maybe?.error || txt || `HTTP ${res.status}`
-      throw new Error(String(msg).trim())
-    }
-  }
-
   async function persistColumnOrder(nextColumns) {
-    const ordered = (Array.isArray(nextColumns) ? nextColumns : [])
+    const ids = (Array.isArray(nextColumns) ? nextColumns : [])
       .map((c) => Number(c?.id))
       .filter(Number.isFinite)
 
-    if (ordered.length === 0) return
+    if (ids.length === 0) return
+
+    const items = ids.map((id, idx) => ({ id, position: idx + 1 }))
 
     setSaving(true)
     setError('')
     try {
-      const res = await fetch(`${API_BASE}/tags/reorder`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ordered_tag_ids: ordered })
-      })
-
-      if (!res.ok) {
-        const { txt, maybe } = await fetchJsonOrText(res)
-        const msg = maybe?.error || txt || `HTTP ${res.status}`
-        throw new Error(String(msg).trim())
-      }
+      await apiPatch('/kanban/columns/reorder', { items })
     } catch (e) {
       await loadBoard()
       setError(e?.message ? String(e.message) : 'Erro ao reordenar colunas')
     } finally {
       setSaving(false)
     }
+  }
+
+  function buildReorderItemsForColumn(colId, list) {
+    const cards = Array.isArray(list) ? list : []
+    return cards
+      .map((c, idx) => ({
+        id: Number(c?.id),
+        column_id: Number(colId),
+        position: idx + 1
+      }))
+      .filter((x) => Number.isFinite(x.id) && Number.isFinite(x.column_id) && Number.isFinite(x.position))
+  }
+
+  async function persistCardsReorderForColumns(colAId, colAList, colBId, colBList) {
+    const itemsA = buildReorderItemsForColumn(colAId, colAList)
+    const itemsB = colBId ? buildReorderItemsForColumn(colBId, colBList) : []
+    const items = [...itemsA, ...itemsB]
+    if (items.length === 0) return
+    await apiPatch('/kanban/cards/reorder', { items })
   }
 
   function maybeAutoScrollBoard(clientX) {
@@ -274,11 +267,11 @@ export default function Kanban() {
 
     if (type === 'card') {
       startCardDragLockNow()
-      const contactId = parseCardId(event?.active?.id)
-      if (!Number.isFinite(Number(contactId))) return
-      const found = findCardInColumns(contactId)
+      const cardId = parseCardId(event?.active?.id)
+      if (!Number.isFinite(Number(cardId))) return
+      const found = findCardInColumns(cardId)
       setActiveCardSnap(found?.card ? clone(found.card) : null)
-      if (Number.isFinite(found?.colId)) setOverTagId(Number(found.colId))
+      if (Number.isFinite(found?.colId)) setOverColId(Number(found.colId))
     }
   }
 
@@ -297,18 +290,18 @@ export default function Kanban() {
     const overType = over?.data?.current?.type
     if (overType === 'card' || overType === 'colDrop') {
       const colId = Number(over?.data?.current?.colId)
-      if (Number.isFinite(colId)) setOverTagId(colId)
+      if (Number.isFinite(colId)) setOverColId(colId)
       return
     }
 
     if (overType === 'col') {
       const colId = Number(over?.data?.current?.colId ?? over?.id)
-      if (Number.isFinite(colId)) setOverTagId(colId)
+      if (Number.isFinite(colId)) setOverColId(colId)
       return
     }
 
     const maybeDrop = parseColDropId(over?.id)
-    if (Number.isFinite(maybeDrop)) setOverTagId(maybeDrop)
+    if (Number.isFinite(maybeDrop)) setOverColId(maybeDrop)
   }
 
   async function handleDragEnd(event) {
@@ -329,8 +322,12 @@ export default function Kanban() {
       if (oldIndex < 0 || newIndex < 0) return
 
       const next = arrayMove(columns, oldIndex, newIndex)
-      setColumns(next)
-      await persistColumnOrder(next)
+
+      // atualiza state (mantendo shape)
+      const normalized = next.map((c) => ({ ...c, name: c?.title ?? c?.name, cards: c?.cards ?? c?.contacts, contacts: c?.cards ?? c?.contacts }))
+      setColumns(normalized)
+
+      await persistColumnOrder(normalized)
       return
     }
 
@@ -339,24 +336,24 @@ export default function Kanban() {
       const over = event?.over
 
       setActiveCardSnap(null)
-      setOverTagId(null)
+      setOverColId(null)
       stopCardDragLockNow()
 
-      const contactId = parseCardId(activeIdRaw)
-      if (!Number.isFinite(contactId)) return
+      const cardId = parseCardId(activeIdRaw)
+      if (!Number.isFinite(cardId)) return
       if (!over?.id) return
 
-      const fromFound = findCardInColumns(contactId)
+      const fromFound = findCardInColumns(cardId)
       const fromColId = fromFound?.colId
       if (!Number.isFinite(fromColId)) return
 
       const overType = over?.data?.current?.type
       let toColId = null
-      let overContactId = null
+      let overCardId = null
 
       if (overType === 'card') {
         toColId = Number(over?.data?.current?.colId)
-        overContactId = parseCardId(over?.id)
+        overCardId = parseCardId(over?.id)
       } else if (overType === 'colDrop') {
         toColId = Number(over?.data?.current?.colId)
       } else if (overType === 'col') {
@@ -368,73 +365,100 @@ export default function Kanban() {
 
       if (!Number.isFinite(Number(toColId))) return
 
-      // reordenar mesma coluna (sem backend)
-      if (Number(fromColId) === Number(toColId) && overType === 'card' && Number.isFinite(overContactId)) {
+      // reordenar dentro da mesma coluna
+      if (Number(fromColId) === Number(toColId) && overType === 'card' && Number.isFinite(overCardId)) {
         const col = getColById(fromColId)
-        const list = Array.isArray(col?.contacts) ? col.contacts : []
+        const list = Array.isArray(col?.cards) ? col.cards : []
 
-        const oldIndex = list.findIndex((c) => Number(c?.id) === Number(contactId))
-        const newIndex = list.findIndex((c) => Number(c?.id) === Number(overContactId))
+        const oldIndex = list.findIndex((c) => Number(c?.id) === Number(cardId))
+        const newIndex = list.findIndex((c) => Number(c?.id) === Number(overCardId))
         if (oldIndex < 0 || newIndex < 0) return
         if (oldIndex === newIndex) return
 
-        const nextCols = (Array.isArray(columns) ? columns : []).map((c) => {
-          if (Number(c?.id) !== Number(fromColId)) return c
-          const nextList = arrayMove(Array.isArray(c?.contacts) ? c.contacts : [], oldIndex, newIndex)
-          return { ...c, contacts: nextList }
-        })
+        const nextList = arrayMove(list, oldIndex, newIndex)
 
-        setColumns(nextCols)
+        setSaving(true)
+        setError('')
+        setColumns((prev) =>
+          prev.map((c) => {
+            if (Number(c?.id) !== Number(fromColId)) return c
+            return { ...c, cards: nextList, contacts: nextList }
+          })
+        )
+
+        try {
+          await persistCardsReorderForColumns(fromColId, nextList)
+        } catch (e) {
+          await loadBoard()
+          setError(e?.message ? String(e.message) : 'Erro ao reordenar cards')
+        } finally {
+          setSaving(false)
+        }
         return
       }
 
-      // mover para outra coluna
+      // mover para outra coluna (ou para o final)
       const movingCard = fromFound?.card
       if (!movingCard) return
 
+      // calcula index de inserção
       let insertIndex = null
-      if (overType === 'card' && Number.isFinite(overContactId)) {
+      if (overType === 'card' && Number.isFinite(overCardId)) {
         const toCol = getColById(toColId)
-        const toList = Array.isArray(toCol?.contacts) ? toCol.contacts : []
-        const idx = toList.findIndex((c) => Number(c?.id) === Number(overContactId))
+        const toList = Array.isArray(toCol?.cards) ? toCol.cards : []
+        const idx = toList.findIndex((c) => Number(c?.id) === Number(overCardId))
         insertIndex = idx >= 0 ? idx : toList.length
       } else {
         const toCol = getColById(toColId)
-        const toList = Array.isArray(toCol?.contacts) ? toCol.contacts : []
+        const toList = Array.isArray(toCol?.cards) ? toCol.cards : []
         insertIndex = toList.length
       }
 
       setSaving(true)
       setError('')
 
+      // atualiza state local já agrupando
+      let fromNext = []
+      let toNext = []
+
       setColumns((prev) => {
         const removed = prev.map((col) => {
           if (Number(col?.id) !== Number(fromColId)) return col
-          const list = Array.isArray(col?.contacts) ? col.contacts : []
-          return { ...col, contacts: list.filter((c) => Number(c?.id) !== Number(contactId)) }
+          const list = Array.isArray(col?.cards) ? col.cards : []
+          const next = list.filter((c) => Number(c?.id) !== Number(cardId))
+          fromNext = next
+          return { ...col, cards: next, contacts: next }
         })
 
-        return removed.map((col) => {
+        const inserted = removed.map((col) => {
           if (Number(col?.id) !== Number(toColId)) return col
-          const list = Array.isArray(col?.contacts) ? [...(col.contacts || [])] : []
-          const exists = list.some((c) => Number(c?.id) === Number(contactId))
-          if (exists) return col
+          const list = Array.isArray(col?.cards) ? [...col.cards] : []
+          const exists = list.some((c) => Number(c?.id) === Number(cardId))
+          if (exists) {
+            toNext = list
+            return col
+          }
 
           let idx = Number(insertIndex)
           if (!Number.isFinite(idx)) idx = list.length
           if (idx < 0) idx = 0
           if (idx > list.length) idx = list.length
 
-          list.splice(idx, 0, movingCard)
-          return { ...col, contacts: list }
+          // atualiza column_id do card no state (visual)
+          const moved = { ...movingCard, column_id: Number(toColId) }
+          list.splice(idx, 0, moved)
+          toNext = list
+          return { ...col, cards: list, contacts: list }
         })
+
+        return inserted
       })
 
       try {
-        await apiMoveContact({ contactId, fromTagId: fromColId, toTagId: toColId })
+        await persistCardsReorderForColumns(fromColId, fromNext, toColId, toNext)
       } catch (e) {
         await loadBoard()
-        setError(e?.message ? String(e.message) : 'Erro ao mover contato')
+        setError(e?.message ? String(e.message) : 'Erro ao mover card')
       } finally {
         setSaving(false)
       }
@@ -445,7 +469,7 @@ export default function Kanban() {
     setActiveColId(null)
     setActiveColSnap(null)
     setActiveCardSnap(null)
-    setOverTagId(null)
+    setOverColId(null)
     stopCardDragLockNow()
   }
 
@@ -456,38 +480,34 @@ export default function Kanban() {
 
   function openNewCardModal(col) {
     setError('')
-    setNewCardName('')
-    setNewCardPhone('')
-    setNewCardNotes('')
+    setNewCardTitle('')
+    setNewCardDesc('')
     setModal({ type: 'newCard', col: col || null, card: null })
   }
 
   function openEditCardModal(col, card) {
     setError('')
-    setEditCardName(String(card?.name || ''))
-    setEditCardPhone(String(card?.phone || ''))
-    setEditCardNotes(String(card?.notes || ''))
+    setEditCardTitle(String(card?.title || ''))
+    setEditCardDesc(String(card?.description || ''))
     setModal({ type: 'editCard', col: col || null, card: card || null })
   }
 
   function openEditColModal(col) {
     setError('')
-    setEditColName(String(col?.name || ''))
+    setEditColName(String(col?.title || col?.name || ''))
     setEditColColor(String(col?.color || '#111111'))
-    setEditColAi(String(col?.ai_profile || ''))
     setModal({ type: 'editCol', col: col || null, card: null })
   }
 
   function resetNewColForm() {
     setNewColName('')
     setNewColColor('#111111')
-    setNewColAi('')
   }
 
   async function createNewColumn() {
     if (creatingCol || saving) return
-    const name = String(newColName || '').trim()
-    if (!name.length) {
+    const title = String(newColName || '').trim()
+    if (!title.length) {
       setError('Informe o nome da coluna.')
       return
     }
@@ -496,21 +516,10 @@ export default function Kanban() {
     setError('')
 
     try {
-      const res = await fetch(`${API_BASE}/tags`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          color: String(newColColor || '').trim() || null,
-          ai_profile: String(newColAi || '').trim() || null
-        })
+      await apiPost('/kanban/columns', {
+        title,
+        color: String(newColColor || '').trim() || null
       })
-
-      if (!res.ok) {
-        const { txt, maybe } = await fetchJsonOrText(res)
-        const msg = maybe?.error || txt || `HTTP ${res.status}`
-        throw new Error(String(msg).trim())
-      }
 
       resetNewColForm()
       setShowNewCol(false)
@@ -522,21 +531,16 @@ export default function Kanban() {
     }
   }
 
-  async function createContactInColumn() {
+  async function createCardInColumn() {
     if (creatingCard || saving) return
     const col = modal?.col
     if (!col?.id) return
 
-    const name = String(newCardName || '').trim()
-    const phone = String(newCardPhone || '').trim()
-    const notes = String(newCardNotes || '').trim()
+    const title = String(newCardTitle || '').trim()
+    const description = String(newCardDesc || '').trim()
 
-    if (!name.length) {
-      setError('Informe o nome do contato.')
-      return
-    }
-    if (!phone.length) {
-      setError('Informe o telefone do contato.')
+    if (!title.length) {
+      setError('Informe o título do card.')
       return
     }
 
@@ -544,86 +548,32 @@ export default function Kanban() {
     setError('')
 
     try {
-      const res1 = await fetch(`${API_BASE}/contacts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, notes: notes.length ? notes : null })
+      await apiPost('/kanban/cards', {
+        column_id: Number(col.id),
+        title,
+        description: description.length ? description : null
       })
-
-      if (!res1.ok) {
-        const { txt, maybe } = await fetchJsonOrText(res1)
-        const msg = maybe?.error || txt || `HTTP ${res1.status}`
-        throw new Error(String(msg).trim())
-      }
-
-      const created = await res1.json().catch(() => null)
-      const contactId = Number(created?.id)
-
-      if (!Number.isFinite(contactId)) {
-        throw new Error('Contato criado, mas não recebi o ID. Ajuste o retorno do POST /contacts.')
-      }
-
-      const res2 = await fetch(`${API_BASE}/tags/assign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contact_id: contactId, tag_id: Number(col.id) })
-      })
-
-      if (!res2.ok) {
-        const { txt, maybe } = await fetchJsonOrText(res2)
-        const msg = maybe?.error || txt || `HTTP ${res2.status}`
-        throw new Error(String(msg).trim())
-      }
 
       closeModal()
       await loadBoard()
     } catch (e) {
-      setError(e?.message ? String(e.message) : 'Erro ao criar contato')
+      setError(e?.message ? String(e.message) : 'Erro ao criar card')
       await loadBoard()
     } finally {
       setCreatingCard(false)
     }
   }
 
-  async function tryUpdateContact(id, payload) {
-    const put = await fetch(`${API_BASE}/contacts/${Number(id)}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    if (put.ok) return
-
-    const patch = await fetch(`${API_BASE}/contacts/${Number(id)}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-    if (patch.ok) return
-
-    const { txt: t1, maybe: m1 } = await fetchJsonOrText(put)
-    const { txt: t2, maybe: m2 } = await fetchJsonOrText(patch)
-
-    const msg1 = m1?.error || t1 || `HTTP ${put.status}`
-    const msg2 = m2?.error || t2 || `HTTP ${patch.status}`
-
-    throw new Error(String(msg1 || msg2).trim() || 'Falha ao atualizar (verifique PUT/PATCH /contacts/:id no backend).')
-  }
-
-  async function updateContact() {
+  async function updateCard() {
     if (updatingCard || saving) return
     const card = modal?.card
     if (!card?.id) return
 
-    const name = String(editCardName || '').trim()
-    const phone = String(editCardPhone || '').trim()
-    const notes = String(editCardNotes || '').trim()
+    const title = String(editCardTitle || '').trim()
+    const description = String(editCardDesc || '').trim()
 
-    if (!name.length) {
-      setError('Informe o nome do contato.')
-      return
-    }
-    if (!phone.length) {
-      setError('Informe o telefone do contato.')
+    if (!title.length) {
+      setError('Informe o título do card.')
       return
     }
 
@@ -631,39 +581,36 @@ export default function Kanban() {
     setError('')
 
     try {
-      await tryUpdateContact(Number(card.id), { name, phone, notes: notes.length ? notes : null })
+      await apiPatch(`/kanban/cards/${Number(card.id)}`, {
+        title,
+        description: description.length ? description : null
+      })
       closeModal()
       await loadBoard()
     } catch (e) {
-      setError(e?.message ? String(e.message) : 'Erro ao editar contato')
+      setError(e?.message ? String(e.message) : 'Erro ao editar card')
       await loadBoard()
     } finally {
       setUpdatingCard(false)
     }
   }
 
-  async function deleteContact(card) {
+  async function deleteCard(card) {
     if (deletingCard || saving) return
     if (!card?.id) return
 
-    const ok = window.confirm(`Excluir o card "${card?.name || `#${card?.id}`}"?`)
+    const ok = window.confirm(`Excluir o card "${card?.title || `#${card?.id}`}"?`)
     if (!ok) return
 
     setDeletingCard(true)
     setError('')
 
     try {
-      const res = await fetch(`${API_BASE}/contacts/${Number(card.id)}`, { method: 'DELETE' })
-      if (!res.ok) {
-        const { txt, maybe } = await fetchJsonOrText(res)
-        const msg = maybe?.error || txt || `HTTP ${res.status}`
-        throw new Error(String(msg).trim() || 'Falha ao excluir (verifique DELETE /contacts/:id no backend).')
-      }
-
+      await apiDelete(`/kanban/cards/${Number(card.id)}`)
       closeModal()
       await loadBoard()
     } catch (e) {
-      setError(e?.message ? String(e.message) : 'Erro ao excluir contato')
+      setError(e?.message ? String(e.message) : 'Erro ao excluir card')
       await loadBoard()
     } finally {
       setDeletingCard(false)
@@ -675,11 +622,10 @@ export default function Kanban() {
     const col = modal?.col
     if (!col?.id) return
 
-    const name = String(editColName || '').trim()
+    const title = String(editColName || '').trim()
     const color = String(editColColor || '').trim()
-    const ai_profile = String(editColAi || '').trim()
 
-    if (!name.length) {
+    if (!title.length) {
       setError('Informe o nome da coluna.')
       return
     }
@@ -688,21 +634,10 @@ export default function Kanban() {
     setError('')
 
     try {
-      const res = await fetch(`${API_BASE}/tags/${Number(col.id)}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          color: color.length ? color : null,
-          ai_profile: ai_profile.length ? ai_profile : null
-        })
+      await apiPatch(`/kanban/columns/${Number(col.id)}`, {
+        title,
+        color: color.length ? color : null
       })
-
-      if (!res.ok) {
-        const { txt, maybe } = await fetchJsonOrText(res)
-        const msg = maybe?.error || txt || `HTTP ${res.status}`
-        throw new Error(String(msg).trim() || 'Falha ao atualizar (verifique PUT /tags/:id no backend).')
-      }
 
       closeModal()
       await loadBoard()
@@ -718,20 +653,14 @@ export default function Kanban() {
     if (deletingCol || saving) return
     if (!col?.id) return
 
-    const ok = window.confirm(`Excluir a coluna "${col?.name || `#${col?.id}`}"?`)
+    const ok = window.confirm(`Excluir a coluna "${col?.title || col?.name || `#${col?.id}`}"?`)
     if (!ok) return
 
     setDeletingCol(true)
     setError('')
 
     try {
-      const res = await fetch(`${API_BASE}/tags/${Number(col.id)}`, { method: 'DELETE' })
-      if (!res.ok) {
-        const { txt, maybe } = await fetchJsonOrText(res)
-        const msg = maybe?.error || txt || `HTTP ${res.status}`
-        throw new Error(String(msg).trim() || 'Falha ao excluir (verifique DELETE /tags/:id no backend).')
-      }
-
+      await apiDelete(`/kanban/columns/${Number(col.id)}`)
       closeModal()
       await loadBoard()
     } catch (e) {
@@ -748,9 +677,9 @@ export default function Kanban() {
     <div className="page">
       <div className="pageHeader">
         <div className="pageHeader__left">
-          <h1 className="pageTitle">CRM Kanban</h1>
+          <h1 className="pageTitle">Kanban</h1>
           <p className="pageSubtitle">
-            Colunas por etiquetas (tags) e cards por contato. <b>{columns.length}</b> colunas · <b>{totalCards}</b> contatos
+            Colunas e cards persistidos no Supabase. <b>{columns.length}</b> colunas · <b>{totalCards}</b> cards
             {(saving || creatingCol || creatingCard || updatingCard || updatingCol || deletingCard || deletingCol) && (
               <span style={{ marginLeft: 10, fontWeight: 800, color: '#111' }}>Salvando...</span>
             )}
@@ -803,7 +732,7 @@ export default function Kanban() {
                 <input
                   value={newColName}
                   onChange={(e) => setNewColName(e.target.value)}
-                  placeholder="Ex: Lead frio, Em negociação, Fechado..."
+                  placeholder="Ex: A fazer, Em andamento, Concluído..."
                   style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e8e8', outline: 'none' }}
                   disabled={!canInteract}
                 />
@@ -828,17 +757,6 @@ export default function Kanban() {
                       style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e8e8', outline: 'none', width: 140 }}
                     />
                   </div>
-                </div>
-
-                <div style={{ flex: 1, minWidth: 240, display: 'grid', gap: 6 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: '#444' }}>Perfil IA (opcional)</div>
-                  <input
-                    value={newColAi}
-                    onChange={(e) => setNewColAi(e.target.value)}
-                    placeholder="Ex: Você é um atendente focado em qualificação..."
-                    disabled={!canInteract}
-                    style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e8e8', outline: 'none' }}
-                  />
                 </div>
               </div>
 
@@ -938,7 +856,7 @@ export default function Kanban() {
                     canInteract={canInteract}
                     isDraggingCard={isDraggingCard}
                     isDraggingCardRef={isDraggingCardRef}
-                    overTagId={overTagId}
+                    overColId={overColId}
                     hoverFooterColId={hoverFooterColId}
                     setHoverFooterColId={setHoverFooterColId}
                     getColById={getColById}
@@ -946,7 +864,7 @@ export default function Kanban() {
                     onOpenEditCol={openEditColModal}
                     onDeleteCol={deleteColumn}
                     onOpenEditCard={openEditCardModal}
-                    onDeleteCard={deleteContact}
+                    onDeleteCard={deleteCard}
                     onOpenDrawer={openDrawerFromCard}
                   />
                 ))}
@@ -956,19 +874,22 @@ export default function Kanban() {
             <DragOverlay dropAnimation={null}>
               {activeColSnap ? (
                 <div style={{ pointerEvents: 'none', filter: 'drop-shadow(0 18px 30px rgba(0,0,0,0.22))' }}>
-                  {/* ✅ coluna “da frente” com cards visíveis (levemente apagados) */}
                   <BoardColumnPreview col={activeColSnap} COL_W={COL_W} cardsOpacity={0.85} />
                 </div>
               ) : activeCardSnap ? (
-                <div style={{ width: 'min(240px, 80vw)', pointerEvents: 'none', opacity: 0.98, filter: 'drop-shadow(0 18px 30px rgba(0,0,0,0.18))' }}>
+                <div
+                  style={{
+                    width: 'min(240px, 80vw)',
+                    pointerEvents: 'none',
+                    opacity: 0.98,
+                    filter: 'drop-shadow(0 18px 30px rgba(0,0,0,0.18))'
+                  }}
+                >
                   <div style={{ border: '1px solid #bcdcff', borderRadius: 10, padding: 12, background: '#fff' }}>
-                    <div style={{ fontWeight: 900 }}>{activeCardSnap?.name || `Contato #${activeCardSnap?.id}`}</div>
-                    <div style={{ marginTop: 6, fontSize: 13, color: '#333' }}>
-                      <b>Telefone:</b> {activeCardSnap?.phone || '-'}
-                    </div>
-                    {String(activeCardSnap?.notes || '').trim().length > 0 && (
+                    <div style={{ fontWeight: 900 }}>{activeCardSnap?.title || `Card #${activeCardSnap?.id}`}</div>
+                    {String(activeCardSnap?.description || '').trim().length > 0 && (
                       <div style={{ marginTop: 6, fontSize: 13, color: '#444', lineHeight: 1.35 }}>
-                        <b>Obs:</b> {activeCardSnap.notes}
+                        <b>Descrição:</b> {activeCardSnap.description}
                       </div>
                     )}
                   </div>
@@ -984,47 +905,34 @@ export default function Kanban() {
       </div>
 
       {/* ✅ Drawer lateral com blur + animação */}
-      <CardDrawer
-        mounted={drawerMounted}
-        visible={drawerVisible}
-        canInteract={canInteract}
-        drawer={drawer}
-        onClose={closeDrawer}
-        onEdit={(col, card) => openEditCardModal(col, card)}
-      />
+      <CardDrawer mounted={drawerMounted} visible={drawerVisible} canInteract={canInteract} drawer={drawer} onClose={closeDrawer} onEdit={(col, card) => openEditCardModal(col, card)} />
 
-      {/* ✅ Modal central separado */}
+      {/* ✅ Modal central */}
       <CenterModal
         modal={modal}
         error={error}
         canInteract={canInteract}
         closeModal={closeModal}
         // NEW CARD
-        newCardName={newCardName}
-        setNewCardName={setNewCardName}
-        newCardPhone={newCardPhone}
-        setNewCardPhone={setNewCardPhone}
-        newCardNotes={newCardNotes}
-        setNewCardNotes={setNewCardNotes}
-        createContactInColumn={createContactInColumn}
+        newCardTitle={newCardTitle}
+        setNewCardTitle={setNewCardTitle}
+        newCardDesc={newCardDesc}
+        setNewCardDesc={setNewCardDesc}
+        createCardInColumn={createCardInColumn}
         creatingCard={creatingCard}
         // EDIT CARD
-        editCardName={editCardName}
-        setEditCardName={setEditCardName}
-        editCardPhone={editCardPhone}
-        setEditCardPhone={setEditCardPhone}
-        editCardNotes={editCardNotes}
-        setEditCardNotes={setEditCardNotes}
-        updateContact={updateContact}
+        editCardTitle={editCardTitle}
+        setEditCardTitle={setEditCardTitle}
+        editCardDesc={editCardDesc}
+        setEditCardDesc={setEditCardDesc}
+        updateCard={updateCard}
         updatingCard={updatingCard}
-        deleteContact={deleteContact}
+        deleteCard={deleteCard}
         // EDIT COL
         editColName={editColName}
         setEditColName={setEditColName}
         editColColor={editColColor}
         setEditColColor={setEditColColor}
-        editColAi={editColAi}
-        setEditColAi={setEditColAi}
         updateColumn={updateColumn}
         updatingCol={updatingCol}
         deleteColumn={deleteColumn}

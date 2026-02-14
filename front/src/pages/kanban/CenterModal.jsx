@@ -5,37 +5,30 @@ export default function CenterModal({
   modal,
   error,
   canInteract,
-
   closeModal,
 
   // NEW CARD
-  newCardName,
-  setNewCardName,
-  newCardPhone,
-  setNewCardPhone,
-  newCardNotes,
-  setNewCardNotes,
-  createContactInColumn,
+  newCardTitle,
+  setNewCardTitle,
+  newCardDesc,
+  setNewCardDesc,
+  createCardInColumn,
   creatingCard,
 
   // EDIT CARD
-  editCardName,
-  setEditCardName,
-  editCardPhone,
-  setEditCardPhone,
-  editCardNotes,
-  setEditCardNotes,
-  updateContact,
+  editCardTitle,
+  setEditCardTitle,
+  editCardDesc,
+  setEditCardDesc,
+  updateCard,
   updatingCard,
-  deleteContact,
+  deleteCard,
 
   // EDIT COL
   editColName,
   setEditColName,
   editColColor,
   setEditColColor,
-  editColAi,
-  setEditColAi,
   updateColumn,
   updatingCol,
   deleteColumn
@@ -70,9 +63,9 @@ export default function CenterModal({
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
           <div style={{ fontWeight: 900, fontSize: 15 }}>
-            {modal.type === 'newCard' && `Novo card em: ${modal?.col?.name || 'Coluna'}`}
-            {modal.type === 'editCard' && `Editar card: ${modal?.card?.name || `#${modal?.card?.id}`}`}
-            {modal.type === 'editCol' && `Editar coluna: ${modal?.col?.name || `#${modal?.col?.id}`}`}
+            {modal.type === 'newCard' && `Novo card em: ${modal?.col?.title || modal?.col?.name || 'Coluna'}`}
+            {modal.type === 'editCard' && `Editar card: ${modal?.card?.title || `#${modal?.card?.id}`}`}
+            {modal.type === 'editCol' && `Editar coluna: ${modal?.col?.title || modal?.col?.name || `#${modal?.col?.id}`}`}
           </div>
 
           <IconButton title="Fechar" disabled={!canInteract} onClick={closeModal}>
@@ -101,33 +94,22 @@ export default function CenterModal({
           {modal.type === 'newCard' && (
             <>
               <div style={{ display: 'grid', gap: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#444' }}>Nome</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#444' }}>Título</div>
                 <input
-                  value={newCardName}
-                  onChange={(e) => setNewCardName(e.target.value)}
-                  placeholder="Nome do contato"
+                  value={newCardTitle}
+                  onChange={(e) => setNewCardTitle(e.target.value)}
+                  placeholder="Título do card"
                   disabled={!canInteract}
                   style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e8e8', outline: 'none' }}
                 />
               </div>
 
               <div style={{ display: 'grid', gap: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#444' }}>Telefone</div>
-                <input
-                  value={newCardPhone}
-                  onChange={(e) => setNewCardPhone(e.target.value)}
-                  placeholder="(DDD) 99999-9999"
-                  disabled={!canInteract}
-                  style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e8e8', outline: 'none' }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gap: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#444' }}>Observação (opcional)</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#444' }}>Descrição (opcional)</div>
                 <textarea
-                  value={newCardNotes}
-                  onChange={(e) => setNewCardNotes(e.target.value)}
-                  placeholder="Ex: pediu retorno às 14h..."
+                  value={newCardDesc}
+                  onChange={(e) => setNewCardDesc(e.target.value)}
+                  placeholder="Ex: detalhes, lembretes, observações..."
                   disabled={!canInteract}
                   rows={4}
                   style={{
@@ -158,7 +140,7 @@ export default function CenterModal({
                 </button>
 
                 <button
-                  onClick={createContactInColumn}
+                  onClick={createCardInColumn}
                   disabled={!canInteract}
                   style={{
                     padding: '10px 12px',
@@ -180,30 +162,20 @@ export default function CenterModal({
           {modal.type === 'editCard' && (
             <>
               <div style={{ display: 'grid', gap: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#444' }}>Nome</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#444' }}>Título</div>
                 <input
-                  value={editCardName}
-                  onChange={(e) => setEditCardName(e.target.value)}
+                  value={editCardTitle}
+                  onChange={(e) => setEditCardTitle(e.target.value)}
                   disabled={!canInteract}
                   style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e8e8', outline: 'none' }}
                 />
               </div>
 
               <div style={{ display: 'grid', gap: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#444' }}>Telefone</div>
-                <input
-                  value={editCardPhone}
-                  onChange={(e) => setEditCardPhone(e.target.value)}
-                  disabled={!canInteract}
-                  style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e8e8', outline: 'none' }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gap: 6 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: '#444' }}>Observação</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#444' }}>Descrição</div>
                 <textarea
-                  value={editCardNotes}
-                  onChange={(e) => setEditCardNotes(e.target.value)}
+                  value={editCardDesc}
+                  onChange={(e) => setEditCardDesc(e.target.value)}
                   disabled={!canInteract}
                   rows={4}
                   style={{
@@ -218,7 +190,7 @@ export default function CenterModal({
 
               <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
                 <button
-                  onClick={() => deleteContact(modal?.card)}
+                  onClick={() => deleteCard(modal?.card)}
                   disabled={!canInteract}
                   style={{
                     padding: '10px 12px',
@@ -252,7 +224,7 @@ export default function CenterModal({
                   </button>
 
                   <button
-                    onClick={updateContact}
+                    onClick={updateCard}
                     disabled={!canInteract}
                     style={{
                       padding: '10px 12px',
@@ -302,16 +274,6 @@ export default function CenterModal({
                       style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e8e8', outline: 'none', width: 140 }}
                     />
                   </div>
-                </div>
-
-                <div style={{ flex: 1, minWidth: 240, display: 'grid', gap: 6 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: '#444' }}>Perfil IA (opcional)</div>
-                  <input
-                    value={editColAi}
-                    onChange={(e) => setEditColAi(e.target.value)}
-                    disabled={!canInteract}
-                    style={{ padding: '10px 12px', borderRadius: 8, border: '1px solid #e8e8e8', outline: 'none' }}
-                  />
                 </div>
               </div>
 

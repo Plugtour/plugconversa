@@ -25,7 +25,7 @@ export default function CardDrawer({ mounted, visible, canInteract, drawer, onCl
           top: 0,
           right: 0,
           height: '100%',
-          width: 'min(620px, 92vw)', // ✅ AQUI: aumente/diminua a largura do Drawer (antes: 460px)
+          width: 'min(620px, 92vw)',
           background: '#fff',
           borderLeft: '1px solid #eee',
           boxShadow: '-20px 0 60px rgba(0,0,0,0.18)',
@@ -38,13 +38,13 @@ export default function CardDrawer({ mounted, visible, canInteract, drawer, onCl
         <div style={{ padding: 14, borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 900, fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {drawer?.card?.name || `Contato #${drawer?.card?.id || ''}`}
+              {drawer?.card?.title || `Card #${drawer?.card?.id || ''}`}
             </div>
             <div style={{ marginTop: 4, fontSize: 12, color: '#666', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
               <span style={{ fontWeight: 800, color: '#333' }}>#{drawer?.card?.id || ''}</span>
-              {drawer?.col?.name ? (
+              {drawer?.col?.title || drawer?.col?.name ? (
                 <span style={{ fontWeight: 700, color: '#666' }}>
-                  Coluna: <b style={{ color: '#111' }}>{drawer.col.name}</b>
+                  Coluna: <b style={{ color: '#111' }}>{drawer?.col?.title || drawer?.col?.name}</b>
                 </span>
               ) : null}
             </div>
@@ -69,14 +69,9 @@ export default function CardDrawer({ mounted, visible, canInteract, drawer, onCl
 
         <div style={{ padding: 14, overflow: 'auto', display: 'grid', gap: 12 }}>
           <div style={{ border: '1px solid #eee', borderRadius: 12, padding: 12 }}>
-            <div style={{ fontSize: 12, color: '#666', fontWeight: 800 }}>Telefone</div>
-            <div style={{ marginTop: 6, fontSize: 15, fontWeight: 900, color: '#111' }}>{drawer?.card?.phone || '-'}</div>
-          </div>
-
-          <div style={{ border: '1px solid #eee', borderRadius: 12, padding: 12 }}>
-            <div style={{ fontSize: 12, color: '#666', fontWeight: 800 }}>Observações</div>
+            <div style={{ fontSize: 12, color: '#666', fontWeight: 800 }}>Descrição</div>
             <div style={{ marginTop: 8, fontSize: 13, color: '#333', lineHeight: 1.45, whiteSpace: 'pre-wrap' }}>
-              {String(drawer?.card?.notes || '').trim().length ? drawer.card.notes : '—'}
+              {String(drawer?.card?.description || '').trim().length ? drawer.card.description : '—'}
             </div>
           </div>
 
