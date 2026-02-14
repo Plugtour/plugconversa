@@ -1,16 +1,18 @@
-// db.js
+// caminho: db.js
 const { Pool } = require('pg')
 
-// usa a variável de ambiente do Render
+// ✅ No Render, a conexão vem do Environment Variables (DATABASE_URL)
 const connectionString = process.env.DATABASE_URL
 
 if (!connectionString) {
-  throw new Error('DATABASE_URL não está definida no ambiente.')
+  console.error('DATABASE_URL não definida no ambiente.')
 }
 
 const pool = new Pool({
   connectionString,
+  // ✅ Supabase exige SSL em produção
   ssl: { rejectUnauthorized: false }
 })
 
 module.exports = pool
+// arquivo: db.js
